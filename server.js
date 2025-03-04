@@ -128,6 +128,22 @@ app.get('/load', (req, res) => {
   );
 });
 
+app.get('/user-info', (req, res) => {
+  const { userId } = req.query;
+
+  db.get(
+    'SELECT username, image FROM users WHERE id = ?',
+    [userId],
+    (err, row) => {
+      if (err || !row) {
+        return res.status(404).json({ error: 'Usuário não encontrado.' });
+      }
+      res.json(row); // Retorna { username: 'Nome do Usuário', image: 'caminho/da/imagem' }
+    }
+  );
+});
+
+
 // Rota para servir o arquivo HTML principal
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));

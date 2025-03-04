@@ -15,10 +15,20 @@
   <link rel="stylesheet" href="/src/css/sidebar/sidebar.css">
   <link rel="stylesheet" href="/src/css/core/body.css">
   <link rel="stylesheet" href="/src/css/core/editor/toolpainel.css">
+  <link rel="stylesheet" href="./src/css/core/usericon.css">
 </head>
 <body>
+  
   <div class="header">
     <img class="logo-image" src="/assets/Mental.png" alt="Logo" />
+  </div>
+  <div class="user-menu">
+    <img src="https://img.icons8.com/?size=100&id=pbGSY1hVNJpO&format=png&color=000000" alt="User Icon" class="user-icon" id="user-icon">
+    <div class="user-dropdown" id="user-dropdown">
+      <img src="https://img.icons8.com/?size=100&id=pbGSY1hVNJpO&format=png&color=000000" alt="User Image">
+      <p id="username">Nome do Usuário</p>
+      <button type="submit" id="logout-button">Sair</button> <!-- Adicionei um id aqui -->
+    </div>
   </div>
   
   <div class="content-container">
@@ -81,5 +91,61 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" 
           integrity="sha512-fD9DI5bZwQxOi7MhYWnnNPlvXdp/2Pj3XSTRrFs5FQa4mizyGLnJcN6tuvUS6LbmgN1ut+XGSABKvjN0H6Aoow==" 
           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    // Verifica o login do usuário
+    const userId = localStorage.getItem('currentUser');
+
+    if (!userId) {
+      // Redireciona para a página de login se não estiver logado
+      window.location.href = '/login.html';
+    }
+
+    // Lógica para exibir/ocultar a aba de usuário
+    const userIcon = document.getElementById('user-icon');
+    const userDropdown = document.getElementById('user-dropdown');
+
+    userIcon.addEventListener('click', () => {
+      userDropdown.classList.toggle('show');
+    });
+
+    // Fecha a aba ao clicar fora
+    window.addEventListener('click', (event) => {
+      if (!event.target.matches('.user-icon') && !event.target.closest('.user-dropdown')) {
+        userDropdown.classList.remove('show');
+      }
+    });
+
+    // Carrega as informações do usuário
+    async function loadUserInfo() {
+      try {
+        const response = await fetch(`http://localhost:3000/user-info?userId=${userId}`);
+        const user = await response.json();
+    
+        console.log('Resposta da API:', user); 
+    
+        if (user) {
+          console.log('Nome do usuário:', user.username);
+          document.getElementById('username').textContent = user.username;
+    
+          if (user.image) {
+            document.querySelector('.user-dropdown img').src = user.image;
+          }
+        } else {
+          console.error('Usuário não encontrado.');
+        }
+      } catch (error) {
+        console.error('Erro ao carregar informações do usuário:', error);
+      }
+    }
+
+    loadUserInfo();
+
+    // Adiciona a funcionalidade de logout
+    const logoutButton = document.getElementById('logout-button');
+    logoutButton.addEventListener('click', () => {
+      localStorage.removeItem('currentUser'); // Remove o usuário logado
+      window.location.href = '/login.html'; // Redireciona para a página de login
+    });
+  </script>
 </body>
 </html>
