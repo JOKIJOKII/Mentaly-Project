@@ -1,0 +1,52 @@
+.tool-panel {
+    display: flex;
+    gap: 10px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 5px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    z-index: 1000;
+}
+  
+.tool-panel input[type="color"] {
+    border: none;
+    background: none;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+}
+  
+.tool-panel input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+  
+.tool-panel input[type="color"]::-moz-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+  
+.delete-button {
+    background: none;
+    border: none;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+  
+  .delete-button img {
+    width: 24px;
+    height: 24px;
+    transition: all 0.3s ease;
+  }
+  
+  .delete-button:hover {
+    background-color: #ff0000;
+  }
+  
+  .delete-button:hover img {
+    transform: scale(1.2);
+  }

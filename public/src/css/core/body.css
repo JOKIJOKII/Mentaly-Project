@@ -1,0 +1,19 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    background: var(--light-bg);
+    color: var(--light-text);
+    transition: background 0.3s, color 0.3s;
+    font-family: Arial, sans-serif;
+    /* cursor: url('https://img.icons8.com/?size=100&id=TdbpMMmYMvER&format=png&color=000000'), auto; */
+} 
+  /* Cursor de pointer para elementos interativos
+a, button, .delete-button, input[type="color"], .draggable {
+cursor: url('https://img.icons8.com/?size=100&id=7Eh5YqvCmikK&format=png&color=000000'), pointer;
+} */

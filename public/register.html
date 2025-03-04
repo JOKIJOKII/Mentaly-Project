@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registro</title>
+  <style>
+    /* Estilos simples para a página de registro */
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .register-container {
+      background: #fff;
+      padding: 20px 25px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      width: 300px;
+    }
+
+    .register-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .register-container form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .register-container input[type="text"],
+    .register-container input[type="password"] {
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+
+    .register-container button {
+      padding: 10px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .register-container button:hover {
+      background: #0056b3;
+    }
+
+    .error-message {
+      color: red;
+      text-align: center;
+      margin-bottom: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <h2>Registro</h2>
+    <p class="error-message" id="error-message">Erro ao registrar. Tente outro nome de usuário.</p>
+    <form id="register-form">
+      <input type="text" id="username" placeholder="Usuário" required />
+      <input type="password" id="password" placeholder="Senha" required />
+      <button type="submit">Registrar</button>
+    </form>
+    <p style="text-align: center; margin-top: 10px;">
+      <a href="login.html">Já tem uma conta? Faça login</a>
+    </p>
+  </div>
+
+  <script>
+    document.getElementById('register-form').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      
+      try {
+        const response = await fetch('http://localhost:3000/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
+
+        if (response.ok) {
+          alert('Registro realizado com sucesso!');
+          window.location.href = "login.html";
+        } else {
+          document.getElementById('error-message').style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Erro ao registrar:', error);
+        document.getElementById('error-message').style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

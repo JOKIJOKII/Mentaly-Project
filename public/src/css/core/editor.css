@@ -1,0 +1,30 @@
+.editor {
+    flex: 1;
+    background: var(--light-editor);
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 20px);
+    grid-template-rows: repeat(auto-fill, 20px);
+    background-size: 20px 20px;
+    background-image: var(--light-grid);
+    transition: background 0.5s;
+    overflow: hidden;
+}
+
+.draggable {
+    position: absolute;
+    background: var(--light-draggable);
+    border: 1px solid #adb5bd;
+    padding: 10px;
+    cursor: grab;
+    z-index: 1;
+    resize: both;
+    overflow: hidden;
+    min-width: 50px;
+    min-height: 30px;
+    color: var(--light-text);
+    transition: background 0.3s, color 0.3s;
+    white-space: pre-wrap;
+    border-radius: 4px;
+}
+

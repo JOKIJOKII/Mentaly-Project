@@ -1,0 +1,48 @@
+.dark-mode {
+    background: var(--dark-bg);
+    color: var(--dark-text);
+}
+
+.dark-mode .header {
+    background: var(--dark-header-bg);
+    color: var(--dark-header-text);
+}
+
+.dark-mode .logo-image {
+    filter: brightness(10);
+}
+
+.dark-mode .sidebar {
+    background: var(--dark-sidebar);
+}
+
+.dark-mode .tool-button {
+    background: var(--dark-button-bg);
+    border: 1px solid var(--dark-button-border);
+}
+
+.dark-mode .tool-button:hover {
+    background: var(--dark-button-hover);
+}
+
+.dark-mode .editor {
+    background: var(--dark-editor);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 20px);
+    grid-template-rows: repeat(auto-fill, 20px);
+    background-size: 20px 20px;
+    background-image: var(--dark-grid);
+    transition: background 0.5s;
+}
+
+.dark-mode .draggable {
+    background: var(--dark-draggable);
+    border: 1px solid #495057;
+    color: var(--dark-text);
+}
+
+.dark-mode .theme-toggle {
+    background: var(--dark-button-bg);
+    border: 1px solid var(--dark-button-border);
+    color: var(--dark-text);
+}
