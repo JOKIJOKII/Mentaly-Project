@@ -1,5 +1,5 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
+const { MongoClient } = require('mongodb');
 const path = require('path');
 const app = express();
 const port = 3000;
@@ -10,143 +10,128 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Configura o Express para usar JSON
 app.use(express.json());
 
-// Conecta ao banco de dados SQLite
-const db = new sqlite3.Database('./database.db');
+// String de conexão do MongoDB Atlas
+const uri = 'mongodb+srv://willwss15:oQF6JYtTH3ce6tIg@mentaly.rmg1j.mongodb.net/?retryWrites=true&w=majority&appName=Mentaly'; // Substitua pela sua URI
+const client = new MongoClient(uri);
 
-// Cria a tabela de usuários
-db.serialize(() => {
-    
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL
-    )
-  `);
+// Conecta ao MongoDB
+async function connectToMongoDB() {
+  try {
+    await client.connect();
+    console.log('Conectado ao MongoDB Atlas');
+    return client.db('mentally'); // Nome do banco de dados
+  } catch (err) {
+    console.error('Erro ao conectar ao MongoDB:', err);
+    process.exit(1);
+  }
+}
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS elements (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      type TEXT NOT NULL,
-      content TEXT,
-      position TEXT,
-      width TEXT, 
-      height TEXT, 
-      FOREIGN KEY (user_id) REFERENCES users (id)
-    )
-  `);
+// Inicia a conexão com o MongoDB
+let db;
+connectToMongoDB().then((database) => {
+  db = database;
 });
 
 // Rotas da API
-app.post('/register', (req, res) => {
+
+// Registro de usuário
+app.post('/register', async (req, res) => {
   const { username, password } = req.body;
 
-  db.run(
-    'INSERT INTO users (username, password) VALUES (?, ?)',
-    [username, password],
-    function (err) {
-      if (err) {
-        return res.status(400).json({ error: 'Nome de usuário já existe.' });
-      }
-      res.json({ id: this.lastID });
+  try {
+    const users = db.collection('users');
+    const existingUser = await users.findOne({ username });
+
+    if (existingUser) {
+      return res.status(400).json({ error: 'Nome de usuário já existe.' });
     }
-  );
+
+    const result = await users.insertOne({ username, password });
+    res.json({ id: result.insertedId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.post('/login', (req, res) => {
+// Login de usuário
+app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
-  db.get(
-    'SELECT id FROM users WHERE username = ? AND password = ?',
-    [username, password],
-    (err, row) => {
-      if (err || !row) {
-        return res.status(401).json({ error: 'Usuário ou senha inválidos.' });
-      }
-      res.json({ userId: row.id });
+  try {
+    const users = db.collection('users');
+    const user = await users.findOne({ username, password });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Usuário ou senha inválidos.' });
     }
-  );
+
+    res.json({ userId: user._id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
-app.post('/auto-save', (req, res) => {
-    const { userId, elements } = req.body;
-  
+
+// Auto-salvar elementos
+app.post('/auto-save', async (req, res) => {
+  const { userId, elements } = req.body;
+
+  try {
+    const elementsCollection = db.collection('elements');
+
     // Remove os elementos antigos do usuário
-    db.run('DELETE FROM elements WHERE user_id = ?', [userId], (err) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-  
-      // Insere os novos elementos
-      const stmt = db.prepare(`
-        INSERT INTO elements (user_id, type, content, position, width, height)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `);
-      elements.forEach((element) => {
-        stmt.run(
-          userId,
-          element.type,
-          element.content,
-          element.position,
-          element.width || null, // Garante que o valor não seja undefined
-          element.height || null // Garante que o valor não seja undefined
-        );
-      });
-      stmt.finalize();
-  
-      res.json({ success: true });
-    });
-  });
-  
-app.post('/save', (req, res) => {
+    await elementsCollection.deleteMany({ user_id: userId });
+
+    // Insere os novos elementos
+    const elementsToInsert = elements.map((element) => ({
+      user_id: userId,
+      type: element.type,
+      content: element.content,
+      position: element.position,
+      width: element.width || null,
+      height: element.height || null,
+    }));
+
+    await elementsCollection.insertMany(elementsToInsert);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Salvar um elemento
+app.post('/save', async (req, res) => {
   const { userId, type, content, position } = req.body;
 
-  db.run(
-    'INSERT INTO elements (user_id, type, content, position) VALUES (?, ?, ?, ?)',
-    [userId, type, content, position],
-    function (err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      res.json({ id: this.lastID });
-    }
-  );
+  try {
+    const elements = db.collection('elements');
+    const result = await elements.insertOne({
+      user_id: userId,
+      type,
+      content,
+      position,
+    });
+    res.json({ id: result.insertedId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.get('/load', (req, res) => {
+// Carregar elementos
+app.get('/load', async (req, res) => {
   const { userId } = req.query;
 
-  db.all(
-    'SELECT * FROM elements WHERE user_id = ?',
-    [userId],
-    (err, rows) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      res.json(rows);
-    }
-  );
+  try {
+    const elements = db.collection('elements');
+    const userElements = await elements.find({ user_id: userId }).toArray();
+    res.json(userElements);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
-
-app.get('/user-info', (req, res) => {
-  const { userId } = req.query;
-
-  db.get(
-    'SELECT username, image FROM users WHERE id = ?',
-    [userId],
-    (err, row) => {
-      if (err || !row) {
-        return res.status(404).json({ error: 'Usuário não encontrado.' });
-      }
-      res.json(row); // Retorna { username: 'Nome do Usuário', image: 'caminho/da/imagem' }
-    }
-  );
-});
-
 
 // Rota para servir o arquivo HTML principal
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Rota para servir outras páginas HTML
